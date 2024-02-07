@@ -46,7 +46,7 @@ def login():
     driver.find_element(By.XPATH, xpaths['pwd']).send_keys('<password>')
     driver.find_element(By.XPATH, xpaths['lgn']).click()
 
-    print(f"LOGGED IN AS cyberlogic03..")
+    print(f"LOGGED IN AS <USER>..")
     sleep(1)
     driver.find_element(By.XPATH, xpaths['wbp']).click()
     pass
