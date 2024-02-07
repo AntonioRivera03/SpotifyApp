@@ -12,6 +12,7 @@ Idea is pretty straight forward, I want to make a stripped down version of Spoti
 <li>Finalize Flutter design</li>
 <li>Add album cover support</li>
 <li>Create Database</li>
+<li>Add headless running state</li>
 <hr>
 
 ![image](https://github.com/AntonioRivera03/SpotifyApp/assets/110839262/9f4023a4-ed27-4282-8b22-ea6553b67d87)
