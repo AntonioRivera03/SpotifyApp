@@ -30,11 +30,11 @@ def main():
 
     redirect() #Waits for redirect so that spotify webplayer can load
 
-    monitor()#Monitors the page for any changes
+    monitor()
 
-#Gets through the log in page and redirects to webplayer
+
 def login():
-    
+    username = ""
     driver.implicitly_wait(.5)
 
     driver.get("https://accounts.spotify.com/en/login")
@@ -42,17 +42,15 @@ def login():
     print("Waiting for load..")
     sleep(3)
 
-    driver.find_element(By.XPATH, xpaths['usr']).send_keys('<username>')
+    driver.find_element(By.XPATH, xpaths['usr']).send_keys(username)
     driver.find_element(By.XPATH, xpaths['pwd']).send_keys('<password>')
     driver.find_element(By.XPATH, xpaths['lgn']).click()
 
-    print(f"LOGGED IN AS <USER>..")
+    print(f"LOGGED IN AS {username}..")
     sleep(1)
     driver.find_element(By.XPATH, xpaths['wbp']).click()
     pass
 
-
-#Monitor uses a 1 second delay while loop to monitor the page and check statuses of things such as songs.
 def monitor():
     title = driver.find_element(By.XPATH, xpaths['ttl']).text
     playstate = driver.find_element(By.XPATH, xpaths['pst']).get_attribute('aria-label')
@@ -62,15 +60,17 @@ def monitor():
     playstateHash = {"Play": "Paused", "Pause" : "Playing"}
     uptime = 0
 
-    song = Song(song=title, playstate=playstate, artist=artist)
+    imgPrefix = 'https://i.scdn.co/image/'
 
+    song = Song(song=title, playstate=playstate, artist=artist)
+    img = ''
     while(True):
         sleep(1)
         uptime += 1
         curTime = driver.find_element(By.XPATH, xpaths['tim']).text
         
         if checkSong(song):
-
+            
             song.song = driver.find_element(By.XPATH, xpaths['ttl']).text
             song.artist = driver.find_element(By.XPATH, xpaths['art']).text
             duration = driver.find_element(By.XPATH, xpaths['dur']).text
@@ -82,8 +82,28 @@ def monitor():
 
             events = [process_browser_log_entry(entry) for entry in browser_log]
             events = [event for event in events if 'Network.response' in event['method']]
+            
+            
+            for x in events:
+                try:
+                    if x['params']['type'] == 'Fetch':
+                        tpe = x['params']['type']
+                        if 'https://spclient.wg.spotify.com/metadata/4/track' in x['params']['response']['url'] :
+                            
+                            try:
+                                dataJson = json.loads(driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': x["params"]["requestId"]})['body'])
+                                if dataJson['name'] == song.song:
+                                    img = dataJson['album']['cover_group']['image'][2]['file_id']
+                                    #Something like, if response[title] is == to song.song, update image and break
+                                    break
+                            except Exception as e:
+                                a = e
+                                nothing()  
+                            
 
-            #test = driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': events[0]["params"]["response"]})         
+                except Exception as e:
+                    pass
+                 
 
             #print(f"Song Changed -> {song.song}")
 
@@ -101,7 +121,8 @@ def monitor():
 
 
 
-
+def nothing():
+    pass
 
 
 
@@ -116,12 +137,16 @@ def monitor():
 
 
 def checkSong(song):
-    return song.song != driver.find_element(By.XPATH, xpaths['ttl']).text
-
+    try:
+        return song.song != driver.find_element(By.XPATH, xpaths['ttl']).text
+    except:
+        return True
 
 def checkPst(song):
-    return song.playstate != driver.find_element(By.XPATH, xpaths['pst']).get_attribute('aria-label')
-
+    try:
+        return song.playstate != driver.find_element(By.XPATH, xpaths['pst']).get_attribute('aria-label')
+    except:
+        return True
 
 
 
